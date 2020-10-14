@@ -62,12 +62,29 @@ def get_cofactor(matrix, i, j):
     return factor * get_determinant2(mat2x2)
 
 
-def get_adjoint(matrix):
+def get_adjoint_matrix(matrix):
     n = range(len(matrix))
     cofactor_matrix = [
         [get_cofactor(matrix, y, x) for x in n] for y in n
     ]
     return get_transpose_matrix(cofactor_matrix)
+
+
+def get_inverse_matrix(matrix):
+    n = range(len(matrix))
+    determinant = get_determinant3(matrix)
+
+    if determinant:
+        adjoint_matrix = get_adjoint_matrix(matrix)
+        return [
+            [adjoint_matrix[y][x] / determinant for x in n] for y in n
+        ]
+    else:
+        return False
+
+
+def multiply(m1, m2):
+    pass
 
 
 matrix = [
@@ -77,5 +94,5 @@ matrix = [
 ]
 
 
-for i in get_adjoint(matrix):
+for i in get_inverse_matrix(matrix):
     print(i)
