@@ -35,15 +35,30 @@ def parse_equation(path):
         return output
 
 
-# for testing purposes
-expected = [
-    [2.0, 3, 3.14, 0],
-    [1, 0, -2, -2.3],
-    [-1.1234, -0.524, 1, 3]
+def get_determinant_leibinz(matrix):
+    a, b, c = matrix[0][:3]
+    d, e, f = matrix[1][:3]
+    g, h, i = matrix[2][:3]
+    return a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h
+
+
+def get_transpose_matrix(matrix):
+    n = range(len(matrix))
+    return [
+        [matrix[x][y] for x in n] for y in n
+    ]
+
+
+matrix = [
+    [3, 2, 1],
+    [6, 5, 4],
+    [9, 8, 7]
+
+
 ]
 
-result = parse_equation('input.txt')
 
-print(expected)
-print(result)
-print(result == expected)
+print(get_determinant_leibinz(matrix))
+
+for i in get_transpose_matrix(matrix):
+    print(i)
