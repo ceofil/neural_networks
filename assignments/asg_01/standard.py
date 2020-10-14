@@ -35,7 +35,11 @@ def parse_equation(path):
         return output
 
 
-def get_determinant_leibinz(matrix):
+def get_determinant2(matrix):
+    return matrix[0][0] * matrix[1][1] - matrix[1][0] * matrix[0][1]
+
+
+def get_determinant3(matrix):
     a, b, c = matrix[0][:3]
     d, e, f = matrix[1][:3]
     g, h, i = matrix[2][:3]
@@ -49,16 +53,29 @@ def get_transpose_matrix(matrix):
     ]
 
 
+def get_cofactor(matrix, i, j):
+    n = range(len(matrix))
+    mat2x2 = [
+        [matrix[y][x] for x in n if not x == j] for y in n if not y == i
+    ]
+    factor = 1 if i % 2 == j % 2 else -1
+    return factor * get_determinant2(mat2x2)
+
+
+def get_adjoint(matrix):
+    n = range(len(matrix))
+    cofactor_matrix = [
+        [get_cofactor(matrix, y, x) for x in n] for y in n
+    ]
+    return get_transpose_matrix(cofactor_matrix)
+
+
 matrix = [
-    [3, 2, 1],
-    [6, 5, 4],
-    [9, 8, 7]
-
-
+    [3, 1, -1],
+    [2, -2, 0],
+    [1, 2, -1]
 ]
 
 
-print(get_determinant_leibinz(matrix))
-
-for i in get_transpose_matrix(matrix):
+for i in get_adjoint(matrix):
     print(i)
