@@ -64,7 +64,8 @@ def solve(path):
     b = [[line[-1]] for line in equation]
 
     inverse_a = get_inverse_matrix(a)
-
+    if not inverse_a:
+        return 'det=0'
     return multiply(inverse_a, b)
 
 
