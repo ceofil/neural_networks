@@ -84,9 +84,11 @@ def get_inverse_matrix(matrix):
 
 
 def multiply(m1, m2):
-    n = range(len(matrix))
+    h1, w1 = range(len(m1)), range(len(m1[0]))
+    h2, w2 = range(len(m2)), range(len(m2[0]))
+    assert w1 == h2, 'invalid matrix dimnesions'
     return[
-        [sum([a*b for a, b in zip(m1[i], [m2[row][j] for row in n])]) for j in n] for i in n
+        [sum([a*b for a, b in zip(m1[i], [m2[row][j] for row in h2])]) for j in w2] for i in h1
     ]
 
 
@@ -97,9 +99,9 @@ matrix = [
 ]
 
 matrix2 = [
-    [10, 14, 15],
-    [0, -11, 6],
-    [2, 12, 13]
+    [1],
+    [2],
+    [3]
 ]
 
 for i in multiply(matrix, matrix2):
