@@ -84,15 +84,23 @@ def get_inverse_matrix(matrix):
 
 
 def multiply(m1, m2):
-    pass
+    n = range(len(matrix))
+    return[
+        [sum([a*b for a, b in zip(m1[i], [m2[row][j] for row in n])]) for j in n] for i in n
+    ]
 
 
 matrix = [
-    [3, 1, -1],
-    [2, -2, 0],
-    [1, 2, -1]
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
 ]
 
+matrix2 = [
+    [10, 14, 15],
+    [0, -11, 6],
+    [2, 12, 13]
+]
 
-for i in get_inverse_matrix(matrix):
+for i in multiply(matrix, matrix2):
     print(i)
