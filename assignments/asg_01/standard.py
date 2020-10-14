@@ -92,17 +92,14 @@ def multiply(m1, m2):
     ]
 
 
-matrix = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9]
-]
+def solve(path):
+    equation = parse_equation(path)
+    a = [line[:3] for line in equation]
+    b = [[line[-1]] for line in equation]
 
-matrix2 = [
-    [1],
-    [2],
-    [3]
-]
+    inverse_a = get_inverse_matrix(a)
 
-for i in multiply(matrix, matrix2):
-    print(i)
+    return multiply(inverse_a, b)
+
+
+print(solve('input.txt'))
