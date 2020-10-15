@@ -3,9 +3,9 @@ import numpy as np
 
 
 def solve(path):
-    equation = parse_equation(path)
-    a = np.array([line[:3] for line in equation])
-    b = np.array([[line[-1]] for line in equation])
+    equation = np.array(parse_equation(path))
+    a = equation[:3, :3]
+    b = equation[:3, 3]
 
     if not np.linalg.det(a):
         print('det=0')
