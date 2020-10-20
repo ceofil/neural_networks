@@ -1,6 +1,7 @@
 import pygame
 import sys
 from main import get_stuff
+import numpy as np
 
 pygame.init()
 
@@ -12,12 +13,8 @@ pygame.display.set_caption('RN')
 quit_game = False
 left_is_pressed = False
 
-
 train_set, valid_set, test_set = get_stuff()
 idx = 0
-
-
-
 
 
 def put_gray_scale(x, y, value):
@@ -38,6 +35,17 @@ def print_img(img):
         put_gray_scale(x, y, pixel)
 
 
+def print_weights(weights, threshold=6):
+    for y, line in enumerate(weights):
+        for x, weight in enumerate(line):
+            max_weight = threshold
+            value = min(abs(weight), max_weight) / max_weight * 255
+            if weight > 0:
+                put_pixel(x, y, (0, value, 0))
+            else:
+                put_pixel(x, y, (value, 0, 0))
+
+
 print('press SPACE')
 while not quit_game:
     for event in pygame.event.get():
@@ -55,13 +63,14 @@ while not quit_game:
             x, y = pygame.mouse.get_pos()
             x = int(x / size)
             y = int(y / size)
-            put_gray_scale(x,y,1)
+            put_gray_scale(x, y, 1)
 
         if event.type == pygame.KEYDOWN:
             images, results = train_set
             img, res = images[idx], results[idx]
             idx += 1
             print_img(img)
+            print_weights(np.random.randn(28, 28), threshold=3)
             print(res)
 
     pygame.display.update()

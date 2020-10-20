@@ -1,6 +1,6 @@
 import pickle
 import gzip
-import numpy
+import numpy as np
 import os
 
 
