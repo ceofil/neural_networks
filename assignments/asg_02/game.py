@@ -5,72 +5,97 @@ import numpy as np
 
 pygame.init()
 
-W = 28
-H = 28
-size = 5
-win = pygame.display.set_mode((W * size, H * size))
-pygame.display.set_caption('RN')
-quit_game = False
-left_is_pressed = False
 
-train_set, valid_set, test_set = get_stuff()
-idx = 0
+class COLOR:
+    @staticmethod
+    def rgb(r, g, b):
+        return r, g, b
 
+    @staticmethod
+    def rgba(r, g, b, a):
+        assert 0 <= a <= 1
+        return r * a, g * a, b * a
 
-def put_gray_scale(x, y, value):
-    assert 0 <= value <= 1
-    scale = 255 * value
-    # scale = 255 if value else 0
-    put_pixel(x, y, (scale, scale, 0))
-
-
-def put_pixel(x, y, color=(255, 255, 255)):
-    pygame.draw.rect(win, color, (x * size, y * size, size, size))
-
-
-def print_img(img):
-    for i, pixel in enumerate(img):
-        x = i % W
-        y = int(i / H)
-        put_gray_scale(x, y, pixel)
-
-
-def print_weights(weights, threshold=6):
-    for y, line in enumerate(weights):
-        for x, weight in enumerate(line):
-            max_weight = threshold
-            value = min(abs(weight), max_weight) / max_weight * 255
+    @staticmethod
+    def weight_map(threshold):
+        def func(weight):
+            value = min(abs(weight), threshold) / threshold * 255
             if weight > 0:
-                put_pixel(x, y, (0, value, 0))
+                return 0, value, 0
             else:
-                put_pixel(x, y, (value, 0, 0))
+                return value, 0, 0
+
+        return func
+
+    @staticmethod
+    def alpha_map(color):
+        r, g, b = color
+
+        def func(alpha):
+            return COLOR.rgba(r, g, b, alpha)
+
+        return func
 
 
-print('press SPACE')
-while not quit_game:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-            quit_game = True
-            pygame.quit()
-            sys.exit()
+class Visualiser:
+    def __init__(self, width, height, caption='Default caption'):
+        self.quit = False
+        self.width = width
+        self.height = height
+        self.win = pygame.display.set_mode((width, height))
+        pygame.display.set_caption(caption)
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            left_is_pressed = True
-        if event.type == pygame.MOUSEBUTTONUP:
-            left_is_pressed = False
+        self.mouse_is_pressed = False
 
-        if left_is_pressed:
+    def put_pixel(self, x, y, color):
+        pygame.draw.rect(self.win, color, (x, y, 1, 1))
+
+    def draw_rect(self, color, rect):
+        pygame.draw.rect(self.win, color, rect)
+
+    def collect_meta_data(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                self.quit = True
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.mouse_is_pressed = True
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.mouse_is_pressed = False
+
+            if event.type == pygame.KEYDOWN:
+                img = np.random.rand(28 * 28)
+                self.visualize_image(img, (10, 10), 10, COLOR.alpha_map((255, 255, 255)))
+
+                img = np.random.randn(28 * 28)
+                self.visualize_image(img, (290, 10), 10, COLOR.weight_map(6))
+
+    def update(self):
+        if self.mouse_is_pressed:
             x, y = pygame.mouse.get_pos()
-            x = int(x / size)
-            y = int(y / size)
-            put_gray_scale(x, y, 1)
+            self.put_pixel(int(x), int(y), (255, 255, 255, 0.5))
 
-        if event.type == pygame.KEYDOWN:
-            images, results = train_set
-            img, res = images[idx], results[idx]
-            idx += 1
-            print_img(img)
-            print_weights(np.random.randn(28, 28), threshold=3)
-            print(res)
+    def run(self):
+        while not self.quit:
+            self.collect_meta_data()
+            self.update()
+            pygame.display.update()
 
-    pygame.display.update()
+    def visualize_image(self, input_img, pos, cell_size, map_color):
+        x, y = pos
+        width, height = 28, 28
+        assert len(input_img) == width * height, \
+            f'Invalid dimensions {len(input_img)} != {width} x {height}'
+        for i, value in enumerate(input_img):
+            dx = i % width
+            dy = int(i / height)
+            color = map_color(value)
+            left = x + dx * cell_size
+            top = y + dy * cell_size
+            self.draw_rect(color, (left, top, cell_size, cell_size))
+
+
+game = Visualiser(720, 420, "test")
+game.run()
