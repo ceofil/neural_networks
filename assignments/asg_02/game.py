@@ -1,9 +1,7 @@
 import pygame
 import sys
-from main import get_stuff
 import numpy as np
 
-pygame.init()
 
 
 class COLOR:
@@ -65,23 +63,16 @@ class Visualiser:
             if event.type == pygame.MOUSEBUTTONUP:
                 self.mouse_is_pressed = False
 
-            if event.type == pygame.KEYDOWN:
-                img = np.random.rand(28 * 28)
-                self.visualize_image(img, (10, 10), 10, COLOR.alpha_map((255, 255, 255)))
-
-                img = np.random.randn(28 * 28)
-                self.visualize_image(img, (290, 10), 10, COLOR.weight_map(6))
-
     def update(self):
         if self.mouse_is_pressed:
             x, y = pygame.mouse.get_pos()
             self.put_pixel(int(x), int(y), (255, 255, 255, 0.5))
+        pygame.display.update()
 
     def run(self):
         while not self.quit:
             self.collect_meta_data()
             self.update()
-            pygame.display.update()
 
     def visualize_image(self, input_img, pos, cell_size, map_color):
         x, y = pos
@@ -95,7 +86,3 @@ class Visualiser:
             left = x + dx * cell_size
             top = y + dy * cell_size
             self.draw_rect(color, (left, top, cell_size, cell_size))
-
-
-game = Visualiser(720, 420, "test")
-game.run()
