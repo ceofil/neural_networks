@@ -14,9 +14,10 @@ class LayerRendering:
 
 class Layer:
     def __init__(self, view_progress):
+        self.control = None
         self.weights = np.zeros([28 * 28, 10])
         self.bias = np.zeros(10)
-        self.delta = 0.6
+        self.delta = 0.7
         self._render = None
         self.view_progress = view_progress
         path = os.path.join('data', 'mnist.pkl.gz')
@@ -34,18 +35,21 @@ class Layer:
         for perceptron in range(10):
             self.render.game.visualize_image(self.weights[:, perceptron],
                                              (28 * self.render.size_on_screen * perceptron, 0),
-                                             self.render.size_on_screen, COLOR.weight_map(4))
+                                             self.render.size_on_screen, COLOR.weight_map(10))
         self.render.game.update()
 
-    def train(self):
-        images, results = self.train_set
+    def get_output(self, img):
+        return np.dot(img, self.weights) + self.bias
+
+    def train_with_set(self, training_set):
+        images, results = training_set
         iterations = len(images)
 
         for img, result, idx in zip(images, results, range(iterations)):
             x = img
-            z = np.dot(x, self.weights) + self.bias
+            z = self.get_output(x)
 
-            # z is a 1d array of length, loops wont affect performance
+            # z is a 1d array of length 10, loops wont affect performance
             output = np.array([1 if i > 0 else 0 for i in z])
 
             t = np.zeros(10)
@@ -55,14 +59,33 @@ class Layer:
             self.weights = self.weights + x * (t - output) * self.delta
             self.bias = self.bias + (t - output) * self.delta
 
-            if idx % 10000 == 0 or idx + 1 == iterations:
-                print(f'{idx}/{iterations}')
-                if self.view_progress:
-                    self.visualize()
+    def test_img(self, img, result):
+        return self.get_output(img).argmax() == result
+
+    def get_accuracy(self):
+        images, results = self.test_set
+        total_cases = len(images)
+        valid_cases = sum(self.test_img(img, result) for img, result in zip(images, results))
+        return valid_cases / total_cases
+
+    def train(self, iterations):
+        tests = []
+        for idx in range(iterations):
+            self.train_with_set(self.train_set)
+            # if idx % 3 == 0:
+            #     self.train_with_set(self.valid_set)
+            accuracy = self.get_accuracy()
+            tests.append(accuracy)
+            print(f'iteration {idx + 1}/{iterations}: {accuracy * 100}%  -  best: {max(tests) * 100}%')
+            if self.view_progress:
+                self.visualize()
+            if accuracy == 1:
+                break
+        return tests
 
 
-if __name__ == '__main__':
-    layer = Layer(view_progress=False)
-    layer.train()
-    layer.visualize()
-    layer.render.game.run()  # this allows pygame event loop to run
+layer = Layer(view_progress=False)
+layer.train(1000)
+
+# layer.visualize()
+# layer.render.game.run()  # this allows pygame event loop to run
