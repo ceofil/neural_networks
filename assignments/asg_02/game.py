@@ -3,7 +3,6 @@ import sys
 import numpy as np
 
 
-
 class COLOR:
     @staticmethod
     def rgb(r, g, b):
@@ -35,6 +34,43 @@ class COLOR:
         return func
 
 
+class DrawSection:
+    def __init__(self, pos, cell_size, game):
+        self.left, self.top = pos
+        self.right = self.left + 28 * cell_size
+        self.bottom = self.top + 28 * cell_size
+        self.img = np.zeros(28 * 28)
+        self.game = game
+        self.cell_size = cell_size
+        self.empty = True
+        self.myfont = pygame.font.SysFont('Comic Sans MS', 30)
+
+    def display_result(self, result):
+        self.game.win.blit(self.myfont.render(f'  {result}  ', True, (255, 255, 255), (0, 0, 0)),
+                           (self.right + 50, self.top + 50))
+
+    def reset(self, layer):
+        if not self.empty:
+            self.empty = True
+            self.img = np.zeros(28 * 28)
+            self.display_result('  -   ')
+
+    def put_pixel(self, screen_pos):
+        sx, sy = screen_pos
+        x = int((sx - self.left) / self.cell_size)
+        y = int((sy - self.top) / self.cell_size)
+        if 0 <= x < 28 and 0 <= y < 28:
+            self.empty = False
+            self.img[y * 28 + x] = 1
+
+    def draw_rect(self):
+        pygame.draw.line(self.game.win, (255, 255, 255), (self.left, self.top), (self.left, self.bottom), 5)
+        pygame.draw.line(self.game.win, (255, 255, 255), (self.left, self.top), (self.right, self.top), 5)
+        pygame.draw.line(self.game.win, (255, 255, 255), (self.right, self.bottom), (self.left, self.bottom), 5)
+        pygame.draw.line(self.game.win, (255, 255, 255), (self.right, self.bottom), (self.right, self.top), 5)
+        self.game.visualize_image(self.img, (self.left, self.top), 5, COLOR.alpha_map((255, 255, 255)))
+
+
 class Visualiser:
     def __init__(self, width, height, caption='Default caption'):
         self.quit = False
@@ -42,8 +78,10 @@ class Visualiser:
         self.height = height
         self.win = pygame.display.set_mode((width, height))
         pygame.display.set_caption(caption)
-
         self.mouse_is_pressed = False
+        self.square = DrawSection((200, 200), 5, self)
+        self.key_is_pressed = False
+        self.layer = None
 
     def put_pixel(self, x, y, color):
         pygame.draw.rect(self.win, color, (x, y, 1, 1))
@@ -62,14 +100,28 @@ class Visualiser:
                 self.mouse_is_pressed = True
             if event.type == pygame.MOUSEBUTTONUP:
                 self.mouse_is_pressed = False
+            self.key_is_pressed = event.type == pygame.KEYUP
+
+    def draw(self):
+        self.square.draw_rect()
 
     def update(self):
         if self.mouse_is_pressed:
             x, y = pygame.mouse.get_pos()
-            self.put_pixel(int(x), int(y), (255, 255, 255, 0.5))
+            # self.put_pixel(int(x), int(y), (255, 255, 255, 0.5))
+            self.square.put_pixel((x, y))
+            self.square.put_pixel((x, y + 1))
+            self.square.put_pixel((x + 1, y))
+            self.square.put_pixel((x + 1, y + 1))
+            result = self.layer.get_output(self.square.img).argmax()
+            self.square.display_result(result)
+        if self.key_is_pressed:
+            self.square.reset(self.layer)
+        self.draw()
         pygame.display.update()
 
-    def run(self):
+    def run(self, layer):
+        self.layer = layer
         while not self.quit:
             self.collect_meta_data()
             self.update()

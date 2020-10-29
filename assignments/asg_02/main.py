@@ -10,7 +10,7 @@ class LayerRendering:
     def __init__(self):
         pygame.init()
         self.size_on_screen = 4
-        self.game = Visualiser(28 * self.size_on_screen * 10, 28 * self.size_on_screen)
+        self.game = Visualiser(28 * self.size_on_screen * 10, 28 * self.size_on_screen * 5, 'Tema 2 RN')
 
 
 class Layer:
@@ -43,9 +43,6 @@ class Layer:
 
     def change_delta(self, accuracy):
         self.delta = self.delta = (1 - accuracy) ** 4
-        self.delta *= 1.3
-
-        print(self.delta)
 
     def serialize(self, accuracy):
         filename = f'{int(accuracy * 10000)}-{uuid.uuid4()}.p'
@@ -87,11 +84,21 @@ class Layer:
     def test_img(self, img, result):
         return self.get_output(img).argmax() == result
 
+    def test_img_with_hot_vector(self, img, hot_vector):
+        result = np.zeros(10)
+        result[self.get_output(img).argmax()] = 1
+        return np.array_equal(result, hot_vector)
+
     def get_accuracy(self, dataset):
         images, results = dataset
         total_cases = len(images)
         valid_cases = sum(self.test_img(img, result) for img, result in zip(images, results))
         return valid_cases / total_cases
+
+    def test(self, images, hot_one_vectors):
+        for img, hot_vector in zip(images, hot_one_vectors):
+            result = np.zeros(10)
+            result[self.get_output(img).argmax()] = 0
 
     def train(self, iterations):
         tests = [self.best_accuracy]
@@ -110,8 +117,11 @@ class Layer:
 
 
 layer = Layer(view_progress=True)
+
 layer.load_best_from_cache()
-# layer.train(iterations=500)
-print(layer.get_accuracy(layer.test_set))
 layer.visualize()
-# layer.render.game.run()  # this allows pygame event loop to run
+
+print(f'Accuracy for training set: {layer.get_accuracy(layer.train_set)}')
+print(f'Accuracy for valid set: {layer.get_accuracy(layer.valid_set)}')
+print(f'Accuracy for test set: {layer.get_accuracy(layer.test_set)}')
+layer.render.game.run(layer)
